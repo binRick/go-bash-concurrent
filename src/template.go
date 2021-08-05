@@ -4,16 +4,31 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"text/template"
 )
 
-type Section struct {
+func (b *BashSection) FxnTitle() string {
+	return b.Title
+}
+func (b *BashSection) FxnTitleStyle() string {
+	return fmt.Sprintf(`%s`, `underline`)
+}
+func (b *BashSection) FxnTitleColor() string {
+	return fmt.Sprintf(`%s`, `yellow`)
+}
+func (b *BashSection) Fxn() string {
+	return strings.ToLower(b.Title)
+}
+
+type BashSection struct {
 	Title string
 }
 type TempateObject struct {
-	Pre  Section
-	Main Section
-	Post Section
+	Pre      BashSection
+	Main     BashSection
+	Post     BashSection
+	Sections []BashSection
 }
 
 func Must(dat interface{}, err error) interface{} {
@@ -38,10 +53,14 @@ func RenderTemplate() string {
 
 	f(err)
 	var buf bytes.Buffer
+	pre := BashSection{Title: `pre`}
+	_main := BashSection{Title: `Main`}
+	post := BashSection{Title: `Post`}
 	err = Template.Execute(&buf, TempateObject{
-		Pre:  Section{Title: `P`},
-		Main: Section{Title: `M`},
-		Post: Section{Title: `Pose`},
+		Pre:      pre,
+		Main:     _main,
+		Post:     post,
+		Sections: []BashSection{pre, _main, post},
 	})
 
 	f(err)

@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
 set -e -o pipefail
-cd $(dirname "${BASH_SOURCE[0]}")
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.concurrent.lib.sh"
+cd "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+source .concurrent.lib.sh
+source .optparse.bash
+source .ansi.sh
 
+optparse.define short=C long=concurrent-build desc="Build Container Concurrency" variable=CONCURRENT_BUILD value=1 default=0
+parse_args(){ source $(optparse.build); }
 create_vm(){ sleep $@; }
 restore_data(){ sleep $@; }
 my_sleep(){ sleep $@; }
 
-__pre() {
-# title: {{ printf "%s" .Pre.Title }}
+{{range  .Sections}}
+__{{.Fxn}}(){
+  ansi --{{.FxnTitleColor}} --{{.FxnTitleStyle}} "$(printf "%s" "{{.FxnTitle}}")"
   true
 }
-__main() {
-# title: {{ printf "%s" .Main.Title }}
-  true
+# /{{ . }}
+{{end}}
+__do_main
+__do_main(){
+  __pre && __main && __post
 }
-__post() {
-# title: {{ printf "%s" .Post.Title }}
-  true
-}
-__pre && __main && __post
 
 do_concurrent() {
     local args=(
@@ -54,3 +56,5 @@ do_concurrent() {
 }
 
 #do_concurrent
+parse_args
+__do_main
